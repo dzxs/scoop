@@ -246,7 +246,7 @@ function movedir($from, $to) {
 
     $out = robocopy "$from" "$to" /e /move
     if($lastexitcode -ge 8) {
-        throw "Error moving directory: `n$out"
+        throw "Could not find '$(fname $from)'! (error $lastexitcode)"
     }
 }
 
@@ -326,7 +326,7 @@ set invalid=`"='
 if !args! == !invalid! ( set args= )
 powershell -noprofile -ex unrestricted `"& '$resolved_path' $arg %args%;exit `$lastexitcode`"" | out-file "$shim.cmd" -encoding ascii
 
-        "#!/bin/sh`npowershell -ex unrestricted `"$resolved_path`" $arg `"$@`"" | out-file $shim -encoding ascii
+        "#!/bin/sh`npowershell.exe -ex unrestricted `"$resolved_path`" $arg `"$@`"" | out-file $shim -encoding ascii
     } elseif($path -match '\.jar$') {
         "@java -jar `"$resolved_path`" $arg %*" | out-file "$shim.cmd" -encoding ascii
         "#!/bin/sh`njava -jar `"$resolved_path`" $arg `"$@`"" | out-file $shim -encoding ascii
@@ -499,6 +499,16 @@ function parse_app([string] $app) {
         return $matches['app'], $matches['bucket'], $matches['version']
     }
     return $app, $null, $null
+}
+
+function show_app($app, $bucket, $version) {
+    if($bucket) {
+        $app = "$bucket/$app"
+    }
+    if($version) {
+        $app = "$app@$version"
+    }
+    return $app
 }
 
 function last_scoop_update() {
